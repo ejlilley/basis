@@ -6,12 +6,12 @@ using LinearAlgebra
 using TaylorSeries
 using QuadGK
 
-# To adapt to use a different (non-isochrone) zeroth-order, change the quantities
-# phi0l, rho0l, Omegal and mu0l (according to the procedure described in the paper).
-# The variable substitution in Ikl (which is x = pi*s for the
-# isochrone model) may also need adjusting.
+# To adapt to use a different (non-isochrone) zeroth-order, the
+# following quantities must be changed: phi0l, rho0l, Omegal, mu0l
+# Additionally, the variable substitution in Ikl (which is x = pi*s for the
+# isochrone model) should be adjusted for optimal performance.
 
-# Zeroth-order potential and density for isochrone model
+# Zeroth-order potential and density for isochrone model (see Eq. (5.1))
 function phi00(r)
     return 1.0 ./ (1.0 .+ sqrt.(1.0 .+ r.^2))
 end
@@ -25,6 +25,7 @@ function rho0l(l,r)
 end
 
 # Mellin-space weight function corresponding to isochrone potential/density
+# This comes from ωl[l,s] in the Mathematica script isochrone_expressions.m
 function Omegal(l::Int64,s::Float64)::Float64
     return abs( (gamma(l + 3/2 + im*s) * gamma(l/2 + 1/4 + im*s/2))/gamma(3*l/2 + 7/4 + im*s/2))^2
 end
@@ -37,14 +38,14 @@ function incbeta(x,a,b)
     return x^a/a * _₂F₁(a,1-b,a+1,x)
 end
 
-# The recurrence coeff for the orthogonal polynomials/basis function
+# The recurrence coeff for the orthogonal polynomials/basis function (Eq. (5.2))
 @memoize function betajl(j::Int64,l::Int64)::Float64
     if (j == -1)
         return 0
     end
 
     if (j == 0)
-        # This could be found numerically, but for the isochrone we know the exact value
+        # This could be found numerically, but for the isochrone we know the exact value (see Eq. (G.4))
         mu0l = (2*l+1)/(24*pi) * exp(lgamma(2*l+2) + lgamma(l+0.5) - lgamma(3*l+1.5)) * (4.0^(-l) - 2*(2*l+1)*incbeta(0.5,3*l+2.5,-l-0.5))
         return mu0l
     end
@@ -86,7 +87,13 @@ function pnl(n::Int64,l::Int64,s::Float64)::Float64
 end
 
 
-# Normalisation constants
+# 'Normalisation' constants I_{kl} (Eq. (5.3) & (5.6))
+# 
+# Note the variable substitution s = x/pi, which comes about because
+# we determined that Omegal(l,s) asymptotically decays as
+# exp(-pi*s). For a different weight function (& for optimal
+# performance) this variable substitution should be tuned to match the
+# correct exponential decay.
 @memoize function Ikl(k::Int64,l::Int64)::Float64
     f(x) = exp(x + log(Omegal(l,x/pi)) + 2*log(abs(pnl(k,l,x/pi))))
     x, w = gausslaguerre(max(k+l,20))
@@ -112,17 +119,17 @@ function nthDerivs(f,x,n)
 end
 
 # Repeated differentiation of zeroth-order potential/density functions
-function Lambdap0l(p,l,r)
+function phi0lderivs(p,l,r)
     f = s -> phi0l(l,exp.(s))
     return nthDerivs(f,log.(r),p)
 end
 
-function Deltap0l(p,l,r)
+function rho0lderivs(p,l,r)
     f = s -> rho0l(l,exp.(s))
     return nthDerivs(f,log.(r),p)
 end
 
-# matrix coeffs of transformation from Lambdap0l to phinl
+# matrix coeffs of transformation from phi0lderivs to phinl (Eq. (5.14))
 @memoize function Anjl(n,j,l)
     if (n<0 || j<0 || n<j)
         return 0
@@ -139,7 +146,7 @@ end
     return Anjl(n-1,j-1,l) + 0.5*Anjl(n-1,j,l) + betajl(n-1,l)*Anjl(n-2,j,l)
 end
 
-# matrix coeffs of transformation from Deltap0l to rhonl
+# matrix coeffs of transformation from rho0lderivs to rhonl
 @memoize function Bnjl(n,j,l)
     if (n<0 || j<0 || n<j)
         return 0
@@ -180,12 +187,12 @@ end
 # The actual basis functions
 function phinl(nmax::Int64,l::Int64,r::Float64)
     x = r/Rbasis # Dimensionless radius
-    return -1.0 * (Amat(nmax,l) * Lambdap0l(nmax,l,x)') ./ sqrt.(Ikl_vec(nmax,l)) * (sqrt(G/Rbasis))
+    return -1.0 * (Amat(nmax,l) * phi0lderivs(nmax,l,x)') ./ sqrt.(Ikl_vec(nmax,l)) * (sqrt(G/Rbasis))
 end
 
 function rhonl(nmax::Int64,l::Int64,r::Float64)
     x = r/Rbasis # Dimensionless radius
-    return -1.0 * (Bmat(nmax,l) * Deltap0l(nmax,l,x)') ./ sqrt.(Ikl_vec(nmax,l)) / ((sqrt(G)*Rbasis^(5/2)*(4*pi)))
+    return -1.0 * (Bmat(nmax,l) * rho0lderivs(nmax,l,x)') ./ sqrt.(Ikl_vec(nmax,l)) / ((sqrt(G)*Rbasis^(5/2)*(4*pi)))
 end
 
 # Alternative implementations of phinl and rhonl that appear to be slower
