@@ -61,7 +61,7 @@ Pξsigmaknm[k_,n_,m_,R_] := Sum[Coefficient[Pnmk[k,n,m,s], s, j]*Nest[ξ[r],sigm
 
 (***********************************************************)
 
-(* Not including code for Qian's Gaussian family as their appear to be errors in the original paper. *)
+(* Not including code for Qian's Gaussian family as there appear to be errors in his original paper. *)
 
 
 (***********************************************************)
