@@ -31,10 +31,10 @@ Nnm[n_,m_] := -π*Gamma[n+2m+1]/(2^(4m+2) * n! * Gamma[m+1/2]^2);
 
 Pnm[n_,m_,s_] := I^n*Pmp[n,s,m+1/2,π/2]; (* index-raising polynomial for Clutton-Brock's basis set (Eq. (4.11)) *)
 
-Pξsigma[n_,m_,R_,f_] := Sum[Coefficient[Pnm[n,m,s],s,j]*Nest[ξ[R],f,j], {j,0,n}]; (* expressing the density basis functions via their index-raising-polynomial representation *)
+Pξsigma[n_,m_,R_] := Sum[Coefficient[Pnm[n,m,s],s,j]*Nest[ξ[x],sigmanm[0,m,x],j], {j,0,n}] /. x -> R; (* expressing the density basis functions via their index-raising-polynomial representation *)
 
 (* Now check the correctness of the result by evaluating e.g.
-   FullSimplify[Pξsigma[5,m,R,sigmanm[0,m,R]]/sigmanm[5,m,R]]
+   FullSimplify[Pξsigma[n,m,R]/sigmanm[n,m,R]]
    which should equal 1 for all values of n,m *)
 
 (***********************************************************)
