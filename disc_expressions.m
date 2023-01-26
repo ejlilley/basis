@@ -31,6 +31,8 @@ Nnm[n_,m_] := -π*Gamma[n+2m+1]/(2^(4m+2) * n! * Gamma[m+1/2]^2);
 
 Pnm[n_,m_,s_] := I^n*Pmp[n,s,m+1/2,π/2]; (* index-raising polynomial for Clutton-Brock's basis set (Eq. (4.11)) *)
 
+Ωm[m_,s_] := FullSimplify[MellinTransform[sigmanm[0,m,R],R,3/2+I*s]*MellinTransform[sigmanm[0,m,R],R,3/2-I*s]/(4*π*Km[m, I*s])]; (* the polynomial weight function Eq. (4.14) *)
+
 Pξsigma[n_,m_,R_] := Sum[Coefficient[Pnm[n,m,s],s,j]*Nest[ξ[x],sigmanm[0,m,x],j], {j,0,n}] /. x -> R; (* expressing the density basis functions via their index-raising-polynomial representation *)
 
 (* Now check the correctness of the result by evaluating e.g.
@@ -49,6 +51,7 @@ Nknm[k_,n_,m_] := Pi/(4 * (Gamma[1 + k + m])^2) * hn[n,1/4+m/2,3/4+m/2+k]/(Pochh
 
 Pnmk[k_,n_,m_,s_] := I^(n)/(Pochhammer[k+m+1,n]) * pnab[n,1/4+m/2,3/4+m/2+k,s]; (* index-raising polynomial for Qian's basis set (Eq. (4.17)) *)
 
+Ωmk[k_,m_,s_] := FullSimplify[MellinTransform[sigmaknm[k,0,m,R],R,3/2+I*s]*MellinTransform[sigmaknm[k,0,m,R],R,3/2-I*s]/(4*π*Km[m, I*s])]; (* the polynomial weight function *)
 
 Pξsigmaknm[k_,n_,m_,R_] := Sum[Coefficient[Pnmk[k,n,m,s], s, j]*Nest[ξ[r],sigmaknm[k,0,m,r],j], {j,0,n}] /. r -> R; (* expressing density basis function via the index-raising polynomial *)
 
@@ -74,8 +77,7 @@ psi0metest[m_,R_] := -(2^(1 + m)*Sqrt[Pi]*MeijerG[{{(1 - m)/2}, {}}, {{m/2, (2 +
 
 psi0me[0,R_] := -π*R*(BesselI[0,R/2]*BesselK[1,R/2] - BesselI[1,R/2]*BesselK[0,R/2]); psi0me[m_,R_] := psi0me[m,R] = FullSimplify[x*D[psi0me[m-1,x], {x,2}] + (1-2*m)*D[psi0me[m-1,x],x] + (m^2-1)/x*psi0me[m-1,x]] /. x -> R; (* the potential as calculated using the result derived in the paper (Eq. (4.25)) *)
 
-Ωme[m_,s_] := (2^(-1 + 2*m)*Gamma[(1 + 2*m - (2*I)*s)/4]*Gamma[(5 + 2*m - (2*I)*s)/4]*Gamma[(1 + 2*m + (2*I)*s)/4]*Gamma[(5 + 2*m + (2*I)*s)/4])/Pi^2; (* the Fourier-Mellin weight function corresponding to the above potential-density pair*)
-(* This can be found as follows: FullSimplify[MellinTransform[sigma0me[m,R],R,3/2+I*s]*MellinTransform[sigma0me[m,R],R,3/2-I*s]/(4*π*Km[m, I*s])] // InputForm *)
+Ωme[m_,s_] := FullSimplify[MellinTransform[sigma0me[m,R],R,3/2+I*s]*MellinTransform[sigma0me[m,R],R,3/2-I*s]/(4*π*Km[m, I*s])]; (* the polynomial weight function *)
 
 Pnme[n_, m_, s_] := pnab[n,m/2+1/4,m/2+5/4,s]; (* index-raising polynomial (Eq. (4.23)) *)
 

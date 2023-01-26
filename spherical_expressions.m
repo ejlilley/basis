@@ -27,6 +27,8 @@ PhinlCB73[n_,l_,r_] := -r^l/(1 + r^2)^(l+1/2) * GegenbauerC[n,l+1,(r^2-1)/(r^2+1
 
 rhonlCB73[n_,l_,r_] := -KnlCB73[n,l]/(4*Pi) * PhinlCB73[n,l,r]/(1+r^2)^2;
 
+ωlCB73[l_, s_] := Re[((l+1/2)^2 + s^2)/(8*Pi^2) * MellinTransform[Phi0lCB73[l,r], r, 1/2 + I*s] * MellinTransform[Phi0lCB73[l,r], r, 1/2 - I*s]]; (* polynomial weight-function Eq (4.3) *)
+
 PnlCB73[n_,l_,s_] := I^(n) * Sqrt[Pi] * Gamma[l+1/2] * (n+2l+1)!/(2^(2l) * (2n+2l+1)*(l)!*Gamma[n+l+1/2]^2) * pn[n,1/4 + l/2,5/4 + l/2,s/2]; (* the index-raising polynomial (see Eq. (4.4)); the complicated prefactor is just for compatibility with CB73's original expressions *)
 
 PζrhoCB73[n_,l_,r_] := FullSimplify[Sum[Coefficient[PnlCB73[n,l,s], s, j]*Nest[ζ[x],rho0lCB73[l,x],j], {j,0,n}] /. x -> r]; (* the density basis function as expressed explicitly via the index-raising polynomial *)
@@ -69,6 +71,8 @@ rhonl[α_,ν_,n_,l_,r_] := KnlA[3,α,ν,n,l]*rhonlA[3,α,ν,n,l,r];
 phinl[α_,ν_,n_,l_,r_] := phinlA[3,α,ν,n,l,r];
 
 Knl[α_,ν_,n_,l_] := KnlA[3,α,ν,n,l];
+
+ωl[α_, ν_, l_, s_] := Re[2*MellinTransform[rhonl[α,ν,0,l,r], r, 5/2 + I*s] * MellinTransform[rhonl[α,ν,0,l,r], r, 5/2 - I*s]/((l+1/2)^2 + s^2)]; (* polynomial weight function Eq (4.7) *)
 
 PnlA[α_,ν_,n_,l_,s_] := With[{μ = α(1+2*l)}, I^n*(n!) * Gamma[μ]*Gamma[μ+ν]/(Gamma[n+μ]*Gamma[μ+ν+n])*pn[n,μ/2,μ/2+ν,α*s]]; (* the index-raising polynomial (Eq. (4.8)) *)
 
