@@ -12,7 +12,11 @@ Bnl[n_,l_,r_] := 1/(2^(n+l)*(n+l)!)*r^l*Exp[-r]*θn[n-1,r];
 
 βnl[1,l_,r_] := (-4*Pi/((1+2l)))/(2^(l+1)*(l+1)!) * (Gamma[2,r]*r^(l) + Gamma[3+2*l,0,r]/r^(l+1));
 
-βnl[n_,l_,r_] := -4*Pi*Sqrt[2/Pi]*(2^(-5/2 - l - 2*n)*Pi*r^(l)* (2^(1 + 2*n)*Gamma[1/2 + l]*HypergeometricPFQRegularized[{1/2 + l}, {3/2 + l, 1/2 - n}, r^2/4] - r^(1 + 2*n)*Gamma[1 + l + n]* HypergeometricPFQRegularized[{1 + l + n}, {3/2 + n, 2 + l + n}, r^2/4])* (-1)^n)/Gamma[1 + l + n];
+βnlgeneral[n_,l_,r_] := -Exp[-I*Pi*n]*Sec[Pi*n]*4*Pi*Sqrt[2/Pi]*(2^(-5/2 - l - 2*n)*Pi*r^(l)* (2^(1 + 2*n)*Gamma[1/2 + l]*HypergeometricPFQRegularized[{1/2 + l}, {3/2 + l, 1/2 - n}, r^2/4] - r^(1 + 2*n)*Gamma[1 + l + n]* HypergeometricPFQRegularized[{1 + l + n}, {3/2 + n, 2 + l + n}, r^2/4])* (-1)^n)/Gamma[1 + l + n];
+
+(* depending on whether n is integer, half-integer, or neither, select the correct definition of βnl *)
+
+βnl[n_,l_,r_] := If[IntegerQ[n],βnl[n-1,l,r] + (2^(2 - l - n)*Pi)/((l+n)!)*r^l*Exp[-r]*θn[n-1,r],If[IntegerQ[n+1/2],(-1)^(n+1/2)/Pi*D[βnlgeneral[m,l,r]*Cos[Pi*m],m] /. m -> n,βnlgeneral[n,l,r]]];
 
 (* Mellin-space polynomial & weight fun. corresponding to B-fun *)
 
@@ -20,9 +24,25 @@ Bnl[n_,l_,r_] := 1/(2^(n+l)*(n+l)!)*r^l*Exp[-r]*θn[n-1,r];
 
 Pnl[q_,n_,l_,s_] := pn[n,l/2+3/4+q,l/2+1/4,s/2];
 
+(* Φnl and ρnl as evaluated by explicitly applying Pnl to the zeroth-orders *)
+
 Testρnl[q_,n_,l_,r_] := PolyOp[(Pnl[q,n,l,#])&, ζ[x], Bnl[q,l,x]] /. x -> r;
 
 TestΦnl[q_,n_,l_,r_] := PolyOp[(Pnl[q,n,l,#])&, ζ2[x], βnl[q,l,x]] /. x -> r;
+
+(* Φnl and ρnl as evaluated by taking a linear combination of Bnl or βnl functions *)
+
+Testρnl2[q_,n_,l_,r_] := I^n*Pochhammer[l+3/2+2q,n]*Pochhammer[l+q+1,n]/(n!) * Sum[Pochhammer[-n,j]*Pochhammer[n+2l+2q+1,j]/((j!)*Pochhammer[l+2q+3/2,j]) * Bnl[j+q,l,r], {j,0,n}];
+
+TestΦnl2[q_,n_,l_,r_] := I^n*Pochhammer[l+3/2+2q,n]*Pochhammer[l+q+1,n]/(n!) * Sum[Pochhammer[-n,j]*Pochhammer[n+2l+2q+1,j]/((j!)*Pochhammer[l+2q+3/2,j]) * βnl[j+q,l,r], {j,0,n}];
+
+(* Limiting values of Φnl/r^l and ρnl/r^l as r -> 0 *)
+
+ρnlLim[q_,n_,l_] :=  (I^n*2^(-2 - l)*(1 + 2*l^2 + q + 2*n*(1 + n + 2*q) + l*(3 + 4*n + 2*q))*Gamma[1/2 + l + n]*Gamma[-1/2 + q]*Gamma[1 + l + n + q])/(Sqrt[Pi]*n!*Gamma[3/2 + l]*Gamma[1 + l + q]*Gamma[2 + l + q]);
+
+ΦnlLim[q_,n_,l_] := -((2^(1 - l)*I^n*Sqrt[Pi]*Gamma[1/2 + l + n]*Gamma[1/2 + q]*Gamma[1 + l + n + q])/(n!*Gamma[3/2 + l]*Gamma[1 + l + q]^2));
+
+(* coeffs and other auxiliary quantities required for the explicit expressions for Φnl and ρnl *)
 
 Jnmlq[q_,n_,m_,l_] := ((-1)^m*I^n*2^(-1 - l)*(l + 2*q)!*Gamma[q]*Gamma[1 + l + n + q]*Gamma[3 + 2*l + m + 2*q]*Gamma[3/2 + l + n + 2*q]*HypergeometricPFQRegularized[{-n, q, 1 + l + 2*q, 1 + 2*l + n + 2*q},{1 + l + q, -m + q, 3 + 2*l + m + 3*q}, 1])/(Sqrt[Pi]*m!*(l + q)!*Gamma[1 + n]);
 
@@ -46,7 +66,9 @@ AAnjlq[n_,0,l_,q_] := AAnlq[n,l,q];
 
 AAnjlq[n_,n_,l_,q_] := (-I)^n*Pochhammer[l+1/2,n]*Pochhammer[l+1,n]*Pochhammer[n+2l+2q+1,n]/(n!*Pochhammer[n+2l+1,n]);
 
-Hnmlq[n_,m_,l_,q_] := If[Or[n<0,m<0],0,(2l+2q)!*(2q)!/(m!*q!*2^(2l+3q+1))*Sum[Pochhammer[-q,k]*Pochhammer[2l+2q+1,k]/(k!*Pochhammer[-2q,k])*Sum[AAnjlq[n+1,j+1,l,q]*Cjl[j,l]/AAnlq[n+1,l,q]*Pochhammer[2l+2,j]/(j!)*Sum[Pochhammer[-j,p]*Pochhammer[2l+2q+k+1,p]*Pochhammer[2-p-k,m]*Hypergeometric2F1[-p,k-q,k-2q,2]/((p!)*Pochhammer[2l+2,p]), {p,0,j}], {j,0,n}], {k,0,q}]];
+Hnmlq[n_,j_,l_,q_] := (-1)^n*2^(q-1)*(l+q)!*Gamma[5/2+l+2q+n]*Gamma[3+j+2l+2q]/(Sqrt[Pi]*j!*(1+l+q)*(1+2l+2q)*Pochhammer[l+3/2,n]*Gamma[2+2l+n+2q])*Sum[(-1)^k*Binomial[n+1,k+1]*(k+l+2q)!*Gamma[3+k+2l+n+2q]/((3+2k+2l+4q)*Gamma[2+k+l+q]*Gamma[2+k+2l+3q])*HypergeometricPFQ[{1, k - n, 3 + k + 2*l + n + 2*q}, {2 + k, 5/2 + k + l + 2*q}, 1]*HypergeometricPFQ[{-j, 1 + 2*l + 2*q, 2 + 2*k + 2*l + 4*q},{3 + 2*l + 2*q, 2 + k + 2*l + 3*q}, 1], {k,0,n}];
+
+(* Hnmlq[n_,m_,l_,q_] := If[Or[n<0,m<0],0,(2l+2q)!*(2q)!/(m!*q!*2^(2l+3q+1))*Sum[Pochhammer[-q,k]*Pochhammer[2l+2q+1,k]/(k!*Pochhammer[-2q,k])*Sum[AAnjlq[n+1,j+1,l,q]*Cjl[j,l]/AAnlq[n+1,l,q]*Pochhammer[2l+2,j]/(j!)*Sum[Pochhammer[-j,p]*Pochhammer[2l+2q+k+1,p]*Pochhammer[2-p-k,m]*Hypergeometric2F1[-p,k-q,k-2q,2]/((p!)*Pochhammer[2l+2,p]), {p,0,j}], {j,0,n}], {k,0,q}]]; *)
 
 Γnlq[q_,0,l_,r_] := θn[q,r];
 
@@ -59,4 +81,3 @@ Hnmlq[n_,m_,l_,q_] := If[Or[n<0,m<0],0,(2l+2q)!*(2q)!/(m!*q!*2^(2l+3q+1))*Sum[Po
 CheckPoisson[q_,n_,l_,r_] := FullSimplify[(r^(-2)*D[r^2*D[Φnl[q,n,l,r],r],r] - l*(l+1)/r^2*Φnl[q,n,l,r])/(4*Pi*ρnl[q,n,l,r])];
 
 CheckOrthog[q_,n_,m_,l_] := -NIntegrate[FullSimplify[r^2*ρnl[q,n,l,r]*Conjugate[Φnl[q,m,l,r]]], {r,0,∞}]/N[NNnlq[q,n,l]];
-

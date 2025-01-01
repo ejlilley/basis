@@ -34,6 +34,5 @@ LagL[n_,a_,x_] := If[n < 0, 0, LaguerreL[n,a,x]];
 
 (* reverse Bessel polynomial *)
 
-θn[n_,x_] := (n!)/(-2)^n*LagL[n,-2*n-1,2*x];
-
+θn[n_,x_] := If[n<0,0,(n!)/(-2)^n*LaguerreL[n,-2*n-1,2*x]];
 
