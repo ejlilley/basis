@@ -50,33 +50,21 @@ Nnlq[q_,n_,l_] := Gamma[n+2l+2q+3]/(2^(2l+2q+3)*(n!));
 
 NNnlq[q_,n_,l_] := 4/(2*Pi*Gamma[1 + l + q]^2) * hn[n,l/2+3/4+q,l/2+1/4];
 
-AAnlq[n_,l_,q_] := (-I)^n*Pochhammer[l+1/2,n]*Pochhammer[1+l+q,n]/(n!);
-
-Anl[n_,l_] := (-I)^n*Pochhammer[l+1/2,n]*Pochhammer[l+1,n]/(n!);
-
-Blq[q_,l_] := 8*Pi/(2^(l+q)*((l+q)!)*(2l+1));
-
-Cjl[j_,l_] := (-1)^j*(j!)/Pochhammer[2l+2,j];
-
-Cnmlqu[n_,m_,l_,q_,u_] := (Sqrt[Pi]*Gamma[1 + l + m + q]*Gamma[3/2 + l + m + u]*Pochhammer[1/2 + l + m, -m + n]*Pochhammer[1 + l + m + q, -m + n]*Pochhammer[1 + 2*l + n + 2*q, m])/((-m + n)!*Gamma[(1 + m - n)/2]*Gamma[l + (2 + m + n)/2 + q]*Gamma[l + (3 + m + n)/2 + u]*Pochhammer[1 + 2*l + m + 2*u, m])*(Pochhammer[q-u,(n-m)/2]);
-
-AAnjlq[n_,j_,l_,q_] := Sum[Cnmlqu[n,m,l,q,0]*Anl[m,l], {m,j,n}];
-
-AAnjlq[n_,0,l_,q_] := AAnlq[n,l,q];
-
-AAnjlq[n_,n_,l_,q_] := (-I)^n*Pochhammer[l+1/2,n]*Pochhammer[l+1,n]*Pochhammer[n+2l+2q+1,n]/(n!*Pochhammer[n+2l+1,n]);
-
 Hnmlq[n_,j_,l_,q_] := (-1)^n*2^(q-1)*(l+q)!*Gamma[5/2+l+2q+n]*Gamma[3+j+2l+2q]/(Sqrt[Pi]*j!*(1+l+q)*(1+2l+2q)*Pochhammer[l+3/2,n]*Gamma[2+2l+n+2q])*Sum[(-1)^k*Binomial[n+1,k+1]*(k+l+2q)!*Gamma[3+k+2l+n+2q]/((3+2k+2l+4q)*Gamma[2+k+l+q]*Gamma[2+k+2l+3q])*HypergeometricPFQ[{1, k - n, 3 + k + 2*l + n + 2*q}, {2 + k, 5/2 + k + l + 2*q}, 1]*HypergeometricPFQ[{-j, 1 + 2*l + 2*q, 2 + 2*k + 2*l + 4*q},{3 + 2*l + 2*q, 2 + k + 2*l + 3*q}, 1], {k,0,n}];
 
-(* Hnmlq[n_,m_,l_,q_] := If[Or[n<0,m<0],0,(2l+2q)!*(2q)!/(m!*q!*2^(2l+3q+1))*Sum[Pochhammer[-q,k]*Pochhammer[2l+2q+1,k]/(k!*Pochhammer[-2q,k])*Sum[AAnjlq[n+1,j+1,l,q]*Cjl[j,l]/AAnlq[n+1,l,q]*Pochhammer[2l+2,j]/(j!)*Sum[Pochhammer[-j,p]*Pochhammer[2l+2q+k+1,p]*Pochhammer[2-p-k,m]*Hypergeometric2F1[-p,k-q,k-2q,2]/((p!)*Pochhammer[2l+2,p]), {p,0,j}], {j,0,n}], {k,0,q}]]; *)
+(* the polynomial part of the Φnl expression *)
 
 Γnlq[q_,0,l_,r_] := θn[q,r];
 
 Γnlq[q_,n_,l_,r_] := Boole[EvenQ[n]]*Γnlq[q,0,l,r] + r^2*Sum[Boole[EvenQ[n-j]]*Sum[If[Or[m<0,j<0],0,(Hnmlq[j,m,l,q] - Hnmlq[j-2,m,l,q])/Nnlq[q,m,l]]*LaguerreL[m,2l+2q+2,2r], {m,j-q,j+q-2}], {j,1,n}];
 
+(* compact forms of Φnl and ρnl *)
+
 ρnl[q_,n_,l_,r_] := r^l*Exp[-r]*Sum[Jnmlq[q,n,j,l]/Nnlq[q,j,l]*LaguerreL[j,2l+2q+2,2*r], {j,Max[n-q-1,0],n+q-1}];
 
 Φnl[q_,n_,l_,r_] := AAnlq[n,l,q]*(βnl[q,l,r] + Blq[q,l]*r^l*Exp[-r]*Γnlq[q,n-1,l,r]);
+
+(* test functions (should evaluate to 1 for all reasonable combinations of parameters) *)
 
 CheckPoisson[q_,n_,l_,r_] := FullSimplify[(r^(-2)*D[r^2*D[Φnl[q,n,l,r],r],r] - l*(l+1)/r^2*Φnl[q,n,l,r])/(4*Pi*ρnl[q,n,l,r])];
 
