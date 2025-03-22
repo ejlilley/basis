@@ -18,7 +18,7 @@ CartToSpher[a_] := Block[{x = a[[1]], y = a[[2]], z = a[[3]]}, If[a == {0.0,0.0,
 
 CartToSpher[a_] := Block[{xxxx = a[[1]], yyyy = a[[2]], zzzz = a[[3]]}, {Sqrt[xxxx^2 + yyyy^2 + zzzz^2],ArcTan[zzzz,Sqrt[xxxx^2+yyyy^2]],ArcTan[xxxx,yyyy]}];
 
-SpherToCart[a_] := Block[{rrrr = a[[1]], θθθθ = a[[2]], φφ = a[[3]]}, {rrrr*Sin[θθθθ]*Cos[φφφφ], rrrr*Sin[θθθθ]*Sin[φφφφ], rrrr*Cos[θθθθ]}];
+SpherToCart[a_] := Block[{rrrr = a[[1]], θθθθ = a[[2]], φφφφ = a[[3]]}, {rrrr*Sin[θθθθ]*Cos[φφφφ], rrrr*Sin[θθθθ]*Sin[φφφφ], rrrr*Cos[θθθθ]}];
 
 AddSpherical[a_,b_] := CartToSpher[SpherToCart[a] + SpherToCart[b]];
 
